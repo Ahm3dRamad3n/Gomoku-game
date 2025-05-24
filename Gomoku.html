@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="manifest" href="manifest.json">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Professional Gomoku Game</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5dc;
+            color: #333;
+            overflow: hidden;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            text-align: center;
+            padding: 15px;
+            background-color: #eee;
+            border-bottom: 2px solid #ccc;
+            flex-shrink: 0;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 2rem;
+        }
+
+        #status {
+            font-size: 1.2rem;
+            text-align: center;
+            margin: 5px 0;
+        }
+
+        #controls {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            padding: 10px;
+            background-color: #ddd;
+            flex-shrink: 0;
+        }
+
+        button, select {
+            padding: 8px 15px;
+            font-size: 1rem;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button {
+            background-color: #444;
+            color: white;
+        }
+
+        button:hover {
+            background-color: #666;
+        }
+
+        .fullscreen-btn {
+            position: fixed;
+            top: 15px;
+            z-index: 1001;
+            padding: 10px 15px;
+            border-radius: 50%;
+            font-size: 1.5em;
+            background-color: #95a5a6;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+        }
+
+        .fullscreen-btn {
+            left: 15px;
+        }
+
+        select {
+            background-color: #fff;
+            color: #333;
+            font-weight: bold;
+        }
+
+        .game-container {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px;
+            overflow: auto;
+            background-color: #ccc;
+        }
+
+        #board {
+            display: grid;
+            grid-template-columns: repeat(15, 1fr);
+            grid-template-rows: repeat(15, 1fr);
+            width: 95vw;
+            max-width: 95vh;
+            aspect-ratio: 1 / 1;
+            border: 3px solid #444;
+            background-color: #f5f5dc;
+            box-shadow: 0 0 15px rgba(0,0,0,0.3);
+            min-width: 300px;
+            min-height: 300px;
+        }
+
+        .cell {
+            width: 100%;
+            height: 100%;
+            border: 1px solid #aaa;
+            position: relative;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+
+        .cell:hover {
+            background-color: #e6e6c9;
+        }
+
+        .cell.black::after,
+        .cell.white::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 70%;
+            height: 70%;
+            border-radius: 50%;
+            box-shadow: 0 0 5px rgba(0,0,0,0.5);
+        }
+
+        .cell.black::after {
+            background-color: black;
+        }
+
+        .cell.white::after {
+            background-color: white;
+        }
+
+        .win-popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(255, 255, 255, 0.95);
+            padding: 20px;
+            border: 2px solid #333;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.4);
+            z-index: 1000;
+            text-align: center;
+            font-size: 1.4rem;
+            font-weight: bold;
+        }
+
+        .win-popup button {
+            margin-top: 15px;
+            padding: 10px 20px;
+            font-size: 1rem;
+        }
+    </style>
+</head>
+<body>
+<header>
+    <button class="fullscreen-btn" onclick="toggleFullScreen()">⛶</button>
+    <h1>Gomoku (15x15)</h1>
+    <div id="status">Current Turn: Black</div>
+</header>
+<div id="controls">
+    <select id="gameMode">
+        <option value="pvp">Player vs Player</option>
+        <option value="ai">Player vs Computer</option>
+    </select>
+    <button onclick="resetGame()">Restart Game</button>
+</div>
+<div class="game-container">
+    <div id="board"></div>
+</div>
+
+<!-- Win popup -->
+<div id="winPopup" class="win-popup" style="display:none;">
+    <div id="popupMessage">Black Wins!</div>
+    <button onclick="closeWinPopup()">Play Again</button>
+</div>
+
+<script>
+
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js') // تأكد من أن المسار صحيح
+        .then(registration => {
+          console.log('ServiceWorker registration successful with scope: ', registration.scope);
+        })
+        .catch(error => {
+          console.log('ServiceWorker registration failed: ', error);
+        });
+    });
+  }
+
+
+    const boardSize = 15;
+    const board = document.getElementById('board');
+    const statusDiv = document.getElementById('status');
+    const gameModeSelect = document.getElementById('gameMode');
+    const winPopup = document.getElementById('winPopup');
+    const popupMessage = document.getElementById('popupMessage');
+
+    let currentPlayer = 'black';
+    let gameBoard = Array.from({ length: boardSize }, () => Array(boardSize).fill(null));
+    let gameOver = false;
+    let isComputerTurn = false;
+
+    function createBoard() {
+        board.innerHTML = '';
+        for (let row = 0; row < boardSize; row++) {
+            for (let col = 0; col < boardSize; col++) {
+                const cell = document.createElement('div');
+                cell.classList.add('cell');
+                cell.dataset.row = row;
+                cell.dataset.col = col;
+                cell.addEventListener('click', handleCellClick);
+                board.appendChild(cell);
+            }
+        }
+    }
+
+    function handleCellClick(e) {
+        if (gameOver || isComputerTurn) return;
+        const cell = e.target.closest('.cell');
+        if (!cell) return;
+        const row = parseInt(cell.dataset.row);
+        const col = parseInt(cell.dataset.col);
+        if (gameBoard[row][col]) return;
+        placeMove(row, col);
+    }
+
+    function placeMove(row, col) {
+        const cell = document.querySelector(`[data-row='${row}'][data-col='${col}']`);
+        gameBoard[row][col] = currentPlayer;
+        cell.classList.add(currentPlayer);
+
+        if (checkWin(row, col)) {
+            showWinMessage();
+            return;
+        }
+
+        switchPlayer();
+
+        if (!gameOver && isComputerTurn) {
+            setTimeout(aiMove, 600);
+        }
+    }
+
+    function switchPlayer() {
+        currentPlayer = currentPlayer === 'black' ? 'white' : 'black';
+        statusDiv.textContent = `Current Turn: ${currentPlayer === 'black' ? 'Black' : 'White'}`;
+        isComputerTurn = (gameModeSelect.value === 'ai' && currentPlayer === 'white');
+    }
+
+    function checkWin(row, col) {
+        const directions = [
+            [[0, 1], [0, -1]],     // Horizontal
+            [[1, 0], [-1, 0]],     // Vertical
+            [[1, 1], [-1, -1]],    // Diagonal \
+            [[1, -1], [-1, 1]]     // Diagonal /
+        ];
+
+        for (const dir of directions) {
+            let count = 1;
+            for (const [dx, dy] of dir) {
+                let x = row + dx;
+                let y = col + dy;
+                while (
+                    x >= 0 &&
+                    x < boardSize &&
+                    y >= 0 &&
+                    y < boardSize &&
+                    gameBoard[x][y] === currentPlayer
+                    ) {
+                    count++;
+                    x += dx;
+                    y += dy;
+                }
+            }
+            if (count >= 5) return true;
+        }
+
+        return false;
+    }
+
+    function aiFindBestMove() {
+        // First, check if AI can win
+        for (let r = 0; r < boardSize; r++) {
+            for (let c = 0; c < boardSize; c++) {
+                if (!gameBoard[r][c]) {
+                    gameBoard[r][c] = 'white';
+                    if (checkWin(r, c)) {
+                        gameBoard[r][c] = null;
+                        return { r, c };
+                    }
+                    gameBoard[r][c] = null;
+                }
+            }
+        }
+
+        // Then block player from winning
+        for (let r = 0; r < boardSize; r++) {
+            for (let c = 0; c < boardSize; c++) {
+                if (!gameBoard[r][c]) {
+                    gameBoard[r][c] = 'black';
+                    if (checkWin(r, c)) {
+                        gameBoard[r][c] = null;
+                        return { r, c };
+                    }
+                    gameBoard[r][c] = null;
+                }
+            }
+        }
+
+        // Evaluate potential moves based on proximity to existing stones
+        let bestScore = -Infinity;
+        let bestMoves = [];
+
+        for (let r = 0; r < boardSize; r++) {
+            for (let c = 0; c < boardSize; c++) {
+                if (!gameBoard[r][c]) {
+                    let score = evaluatePosition(r, c);
+                    if (score > bestScore) {
+                        bestScore = score;
+                        bestMoves = [{ r, c }];
+                    } else if (score === bestScore) {
+                        bestMoves.push({ r, c });
+                    }
+                }
+            }
+        }
+
+        return bestMoves[Math.floor(Math.random() * bestMoves.length)];
+    }
+
+    function evaluatePosition(r, c) {
+        let score = 0;
+        const directions = [
+            [0, 1],
+            [1, 0],
+            [1, 1],
+            [1, -1]
+        ];
+
+        for (const [dx, dy] of directions) {
+            let myCount = 0;
+            let oppCount = 0;
+            let emptyCount = 0;
+
+            let x = r - 4 * dx;
+            let y = c - 4 * dy;
+
+            for (let i = 0; i < 9; i++) {
+                if (x >= 0 && x < boardSize && y >= 0 && y < boardSize) {
+                    const cell = gameBoard[x][y];
+                    if (cell === 'white') myCount++;
+                    else if (cell === 'black') oppCount++;
+                    else emptyCount++;
+                }
+                x += dx;
+                y += dy;
+            }
+
+            if (myCount > 0) score += Math.pow(2, myCount);
+            if (oppCount > 0) score += Math.pow(2, oppCount);
+        }
+
+        return score;
+    }
+
+    function aiMove() {
+        if (gameOver) return;
+        const move = aiFindBestMove();
+        if (move) placeMove(move.r, move.c);
+    }
+
+    function showWinMessage() {
+        gameOver = true;
+        const winner = currentPlayer === 'black' ? 'Black' : 'White';
+        popupMessage.textContent = `${winner} Wins!`;
+        winPopup.style.display = 'block';
+    }
+
+    function closeWinPopup() {
+        winPopup.style.display = 'none';
+        resetGame();
+    }
+
+    function toggleFullScreen() {
+        if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen();
+        } else {
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            }
+        }
+    }
+
+    function resetGame() {
+        gameBoard = Array.from({ length: boardSize }, () => Array(boardSize).fill(null));
+        currentPlayer = 'black';
+        gameOver = false;
+        isComputerTurn = false;
+        statusDiv.textContent = 'Current Turn: Black';
+        createBoard();
+    }
+
+    gameModeSelect.addEventListener('change', () => {
+        resetGame();
+    });
+
+    // Resize observer to keep board square
+    window.addEventListener('resize', () => {
+        const board = document.getElementById('board');
+        const parent = board.parentElement;
+        const size = Math.min(parent.clientWidth, window.innerHeight * 0.7);
+        board.style.width = `${size}px`;
+        board.style.height = `${size}px`;
+    });
+
+    createBoard();
+    window.dispatchEvent(new Event('resize')); // Trigger initial resize
+</script>
+</body>
+</html>
