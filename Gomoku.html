@@ -70,24 +70,7 @@
         button:hover {
             background-color: #666;
         }
-
-        .fullscreen-btn {
-            position: fixed;
-            top: 15px;
-            z-index: 1001;
-            padding: 10px 15px;
-            border-radius: 50%;
-            font-size: 1.5em;
-            background-color: #95a5a6;
-            color: #fff;
-            border: none;
-            cursor: pointer;
-        }
-
-        .fullscreen-btn {
-            left: 15px;
-        }
-
+        
         select {
             background-color: #fff;
             color: #333;
@@ -177,7 +160,6 @@
 </head>
 <body>
 <header>
-    <button class="fullscreen-btn" onclick="toggleFullScreen()">⛶</button>
     <h1>Gomoku (15x15)</h1>
     <div id="status">Current Turn: Black</div>
 </header>
@@ -404,16 +386,6 @@
     function closeWinPopup() {
         winPopup.style.display = 'none';
         resetGame();
-    }
-
-    function toggleFullScreen() {
-        if (!document.fullscreenElement) {
-            document.documentElement.requestFullscreen();
-        } else {
-            if (document.exitFullscreen) {
-                document.exitFullscreen();
-            }
-        }
     }
 
     function resetGame() {

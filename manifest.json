@@ -5,8 +5,8 @@
   "start_url": "./Gomoku.html",  
   "scope": ".",        
   "display": "standalone",   
-  "background_color": "#ffffff", // لون الخلفية قبل تحميل الـ CSS
-  "theme_color": "#000000",    // لون شريط العنوان أو الحالة
+  "background_color": "#F5F5DCFF", // لون الخلفية قبل تحميل الـ CSS
+  "theme_color": "#EEEEEEFF",    // لون شريط العنوان أو الحالة
   "orientation": "portrait-primary", // الاتجاه المفضل (اختياري)
   "icons": [
     {
