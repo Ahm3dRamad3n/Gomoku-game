@@ -2,21 +2,21 @@
   "name": "Gomoku game",
   "short_name": "Gomoku",
   "description": "لعبه جوموكو تشبه اكس او ولكن الفائز من يحمع 5 مربعات جانب بعض",
-  "start_url": "./Gomoku.html",  
-  "scope": ".",        
-  "display": "standalone",   
-  "background_color": "#F5F5DCFF", // لون الخلفية قبل تحميل الـ CSS
-  "theme_color": "#EEEEEEFF",    // لون شريط العنوان أو الحالة
-  "orientation": "portrait-primary", // الاتجاه المفضل (اختياري)
+  "start_url": "./Gomoku.html",
+  "scope": ".",
+  "display": "standalone",
+  "background_color": "#F5F5DC",
+  "theme_color": "#EEEEEE",
+  "orientation": "portrait-primary",
   "icons": [
     {
-      "src": "icons/icon-192x192.png", // المسار النسبي للأيقونة
+      "src": "icons/icon-192x192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "icons/icon-512x512.png", // المسار النسبي للأيقونة
+      "src": "icons/icon-512x512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
