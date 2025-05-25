@@ -3,7 +3,7 @@
   "short_name": "Gomoku",
   "description": "لعبه جوموكو تشبه اكس او ولكن الفائز من يحمع 5 مربعات جانب بعض",
   "start_url": "./Gomoku.html",
-  "id": "/gomoku-app/", // <-- إضافة حقل ID المقترح
+  "id": "/gomoku-app/", 
   "scope": ".",
   "display": "standalone",
   "background_color": "#F5F5DC",
@@ -14,26 +14,25 @@
       "src": "icons/icon-192x192.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any"  // <-- الغرض: أيقونة عادية
+      "purpose": "any"  
     },
     {
       "src": "icons/icon-192x192.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "maskable" // <-- الغرض: قابلة للقص (نفس الملف)
+      "purpose": "maskable" 
     },
     {
       "src": "icons/icon-512x512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any" // <-- الغرض: أيقونة عادية
+      "purpose": "any" 
     },
     {
       "src": "icons/icon-512x512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "maskable" // <-- الغرض: قابلة للقص (نفس الملف)
+      "purpose": "maskable" 
     }
   ]
-  // يمكنك إضافة قسم screenshots هنا لاحقاً إذا أردت
 }
