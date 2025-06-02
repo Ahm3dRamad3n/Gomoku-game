@@ -1,68 +1,96 @@
-const CACHE_NAME = 'Gomoku-cache-v1'; 
+const CACHE_NAME = 'Gomoku-cache-v2'; // Increment cache version
 const urlsToCache = [
-  './',             
-  './Gomoku.html',   
-  './manifest.json', 
-  './icons/icon-192x192.png', 
+  './',             // Cache the root directory
+  './Gomoku.html',   // Assuming the main HTML file is Gomoku.html (or change to index.html if renamed)
+  './manifest.json',
+  './icons/icon-192x192.png',
   './icons/icon-512x512.png'
 ];
 
-// حدث التثبيت: يتم تشغيله عند تثبيت الـ Service Worker لأول مرة
+// Install event: Cache the app shell
 self.addEventListener('install', event => {
-  console.log('Service Worker: Installing...');
+  console.log('Service Worker: Installing Gomoku Cache...');
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => {
         console.log('Service Worker: Caching app shell');
-        // إضافة جميع الملفات المحددة إلى ذاكرة التخزين المؤقت
-        return cache.addAll(urlsToCache);
+        // Use { cache: 'reload' } to bypass HTTP cache when fetching during install
+        const cachePromises = urlsToCache.map(urlToCache => {
+            try {
+                return cache.add(new Request(urlToCache, {cache: 'reload'}));
+            } catch (e) {
+                console.error(`Service Worker: Failed to create request for ${urlToCache}`, e);
+                return Promise.resolve();
+            }
+        });
+        return Promise.all(cachePromises);
       })
-      .then(() => self.skipWaiting()) // تفعيل الـ Service Worker الجديد فوراً
+      .then(() => self.skipWaiting()) // Activate worker immediately
       .catch(error => {
           console.error('Service Worker: Failed to cache app shell:', error);
       })
   );
 });
 
-// حدث التفعيل: يتم تشغيله عند تفعيل الـ Service Worker (بعد التثبيت أو التحديث)
+// Activate event: Clean up old caches
 self.addEventListener('activate', event => {
-  console.log('Service Worker: Activating...');
+  console.log('Service Worker: Activating Gomoku Cache...');
   event.waitUntil(
     caches.keys().then(cacheNames => {
       return Promise.all(
-        // حذف أي ذاكرة تخزين مؤقت قديمة غير مطابقة للاسم الحالي
         cacheNames.map(cache => {
-          if (cache !== CACHE_NAME) {
+          // Ensure we only delete caches related to this app and not the current one
+          if (cache !== CACHE_NAME && cache.startsWith('Gomoku-cache-')) {
             console.log('Service Worker: Clearing old cache:', cache);
             return caches.delete(cache);
           }
         })
       );
-    }).then(() => self.clients.claim()) // التحكم في الصفحات المفتوحة فوراً
+    }).then(() => self.clients.claim()) // Take control of pages immediately
   );
 });
 
-// حدث الجلب (Fetch): يتم تشغيله عند قيام الصفحة بطلب أي مورد (HTML, CSS, JS, صور, ...)
+// Fetch event: Serve from cache or network (Cache-first, update cache on network fetch)
 self.addEventListener('fetch', event => {
-  console.log('Service Worker: Fetching', event.request.url);
+  // Skip non-GET requests
+  if (event.request.method !== 'GET') {
+      return;
+  }
+
   event.respondWith(
-    // محاولة إيجاد الطلب في ذاكرة التخزين المؤقت أولاً
     caches.match(event.request)
       .then(response => {
-        // إذا وجد في الـ Cache، قم بإرجاعه
+        // Cache hit - return response
         if (response) {
           return response;
         }
-        // إذا لم يوجد، قم بجلبه من الشبكة
+
+        // Not in cache - fetch from network
         return fetch(event.request).then(
           networkResponse => {
-            // (اختياري) يمكنك تخزين الاستجابة الجديدة في الـ Cache هنا إذا أردت تحديثها
-            // لكن القالب الأساسي يركز على خدمة الملفات المخزنة أثناء التثبيت
+            // Check if we received a valid response
+            if (!networkResponse || (networkResponse.status !== 200 && networkResponse.type !== 'opaque') || (networkResponse.type === 'basic' && networkResponse.status !== 200)) {
+              return networkResponse;
+            }
+
+            // Clone the response to use in cache
+            const responseToCache = networkResponse.clone();
+
+            caches.open(CACHE_NAME)
+              .then(cache => {
+                cache.put(event.request, responseToCache);
+              });
+
             return networkResponse;
           }
         ).catch(error => {
             console.error('Service Worker: Fetch failed:', error);
-            // يمكنك هنا إرجاع صفحة خطأ مخصصة للعمل دون اتصال إذا فشل الجلب
+            // Fallback for navigation requests if fetch fails (e.g., offline)
+            if (event.request.mode === 'navigate') {
+                console.log('Service Worker: Fetch failed, returning offline page.');
+                // Ensure this path matches the main HTML file listed in urlsToCache
+                return caches.match('./Gomoku.html'); // Or './index.html' if you renamed it
+            }
         });
       })
   );
