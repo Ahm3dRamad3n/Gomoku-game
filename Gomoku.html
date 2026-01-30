@@ -6,156 +6,29 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Professional Gomoku Game</title>
     <style>
-        * {
-            box-sizing: border-box;
-        }
-
-        html, body {
-            margin: 0;
-            padding: 0;
-            height: 100%;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f5f5dc;
-            color: #333;
-            overflow: hidden;
-        }
-
-        body {
-            display: flex;
-            flex-direction: column;
-        }
-
-        header {
-            text-align: center;
-            padding: 15px;
-            background-color: #eee;
-            border-bottom: 2px solid #ccc;
-            flex-shrink: 0;
-        }
-
-        h1 {
-            margin: 0;
-            font-size: 2rem;
-        }
-
-        #status {
-            font-size: 1.2rem;
-            text-align: center;
-            margin: 5px 0;
-        }
-
-        #controls {
-            display: flex;
-            justify-content: center;
-            flex-wrap: wrap;
-            gap: 10px;
-            padding: 10px;
-            background-color: #ddd;
-            flex-shrink: 0;
-        }
-
-        button, select {
-            padding: 8px 15px;
-            font-size: 1rem;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
-        button {
-            background-color: #444;
-            color: white;
-        }
-
-        button:hover {
-            background-color: #666;
-        }
+        * { box-sizing: border-box; }
+        html, body { margin: 0; padding: 0; height: 100%; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f5f5dc; color: #333; overflow: hidden; }
+        body { display: flex; flex-direction: column; }
+        header { text-align: center; padding: 15px; background-color: #eee; border-bottom: 2px solid #ccc; flex-shrink: 0; }
+        h1 { margin: 0; font-size: 2rem; }
+        #status { font-size: 1.2rem; text-align: center; margin: 5px 0; }
+        #controls { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; padding: 10px; background-color: #ddd; flex-shrink: 0; }
+        button, select { padding: 8px 15px; font-size: 1rem; border: none; border-radius: 5px; cursor: pointer; }
+        button { background-color: #444; color: white; }
+        button:hover { background-color: #666; }
+        select { background-color: #fff; color: #333; font-weight: bold; }
+        .game-container { flex: 1; display: flex; align-items: center; justify-content: center; padding: 10px; overflow: auto; background-color: #ccc; }
+        #board { display: grid; grid-template-columns: repeat(15, 1fr); grid-template-rows: repeat(15, 1fr); width: 95vw; max-width: 95vh; aspect-ratio: 1 / 1; border: 3px solid #444; background-color: #f5f5dc; box-shadow: 0 0 15px rgba(0,0,0,0.3); min-width: 300px; min-height: 300px; }
+        .cell { width: 100%; height: 100%; border: 1px solid #aaa; position: relative; cursor: pointer; transition: background-color 0.2s ease; }
+        .cell:hover { background-color: #e6e6c9; }
+        .cell.black::after, .cell.white::after { content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 70%; height: 70%; border-radius: 50%; box-shadow: 0 0 5px rgba(0,0,0,0.5); }
+        .cell.black::after { background-color: black; }
+        .cell.white::after { background-color: white; }
+        .win-popup { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: rgba(255, 255, 255, 0.95); padding: 20px; border: 2px solid #333; border-radius: 10px; box-shadow: 0 0 20px rgba(0,0,0,0.4); z-index: 1000; text-align: center; font-size: 1.4rem; font-weight: bold; }
+        .win-popup button { margin-top: 15px; padding: 10px 20px; font-size: 1rem; }
         
-        select {
-            background-color: #fff;
-            color: #333;
-            font-weight: bold;
-        }
-
-        .game-container {
-            flex: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 10px;
-            overflow: auto;
-            background-color: #ccc;
-        }
-
-        #board {
-            display: grid;
-            grid-template-columns: repeat(15, 1fr);
-            grid-template-rows: repeat(15, 1fr);
-            width: 95vw;
-            max-width: 95vh;
-            aspect-ratio: 1 / 1;
-            border: 3px solid #444;
-            background-color: #f5f5dc;
-            box-shadow: 0 0 15px rgba(0,0,0,0.3);
-            min-width: 300px;
-            min-height: 300px;
-        }
-
-        .cell {
-            width: 100%;
-            height: 100%;
-            border: 1px solid #aaa;
-            position: relative;
-            cursor: pointer;
-            transition: background-color 0.2s ease;
-        }
-
-        .cell:hover {
-            background-color: #e6e6c9;
-        }
-
-        .cell.black::after,
-        .cell.white::after {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 70%;
-            height: 70%;
-            border-radius: 50%;
-            box-shadow: 0 0 5px rgba(0,0,0,0.5);
-        }
-
-        .cell.black::after {
-            background-color: black;
-        }
-
-        .cell.white::after {
-            background-color: white;
-        }
-
-        .win-popup {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background-color: rgba(255, 255, 255, 0.95);
-            padding: 20px;
-            border: 2px solid #333;
-            border-radius: 10px;
-            box-shadow: 0 0 20px rgba(0,0,0,0.4);
-            z-index: 1000;
-            text-align: center;
-            font-size: 1.4rem;
-            font-weight: bold;
-        }
-
-        .win-popup button {
-            margin-top: 15px;
-            padding: 10px 20px;
-            font-size: 1rem;
-        }
+        /* إخفاء قائمة الصعوبة افتراضياً */
+        #difficultyContainer { display: none; }
     </style>
 </head>
 <body>
@@ -168,37 +41,41 @@
         <option value="pvp">Player vs Player</option>
         <option value="ai">Player vs Computer</option>
     </select>
+    
+    <div id="difficultyContainer">
+        <select id="difficultyLevel">
+            <option value="easy">Easy (Random)</option>
+            <option value="medium">Medium (Window Logic)</option>
+            <option value="hard" selected>Hard (Smart Logic)</option>
+            <option value="impossible">Impossible (Minimax)</option>
+        </select>
+    </div>
+
     <button onclick="resetGame()">Restart Game</button>
 </div>
 <div class="game-container">
     <div id="board"></div>
 </div>
 
-<!-- Win popup -->
 <div id="winPopup" class="win-popup" style="display:none;">
     <div id="popupMessage">Black Wins!</div>
     <button onclick="closeWinPopup()">Play Again</button>
 </div>
 
 <script>
-
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('./sw.js') // تأكد من أن المسار صحيح
-        .then(registration => {
-          console.log('ServiceWorker registration successful with scope: ', registration.scope);
-        })
-        .catch(error => {
-          console.log('ServiceWorker registration failed: ', error);
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+             // تأكد من وجود ملف sw.js إذا كنت تستخدم PWA
+            navigator.serviceWorker.register('./sw.js').catch(e => console.log(e)); 
         });
-    });
-  }
-
+    }
 
     const boardSize = 15;
     const board = document.getElementById('board');
     const statusDiv = document.getElementById('status');
     const gameModeSelect = document.getElementById('gameMode');
+    const difficultyContainer = document.getElementById('difficultyContainer');
+    const difficultySelect = document.getElementById('difficultyLevel');
     const winPopup = document.getElementById('winPopup');
     const popupMessage = document.getElementById('popupMessage');
 
@@ -206,6 +83,22 @@
     let gameBoard = Array.from({ length: boardSize }, () => Array(boardSize).fill(null));
     let gameOver = false;
     let isComputerTurn = false;
+
+    // --- إدارة واجهة المستخدم ---
+
+    gameModeSelect.addEventListener('change', () => {
+        if (gameModeSelect.value === 'ai') {
+            difficultyContainer.style.display = 'inline-block';
+        } else {
+            difficultyContainer.style.display = 'none';
+        }
+        resetGame();
+    });
+    
+    // عند التحميل
+    if (gameModeSelect.value === 'ai') {
+        difficultyContainer.style.display = 'inline-block';
+    }
 
     function createBoard() {
         board.innerHTML = '';
@@ -236,7 +129,7 @@
         gameBoard[row][col] = currentPlayer;
         cell.classList.add(currentPlayer);
 
-        if (checkWin(row, col)) {
+        if (checkWin(row, col, currentPlayer)) {
             showWinMessage();
             return;
         }
@@ -244,7 +137,8 @@
         switchPlayer();
 
         if (!gameOver && isComputerTurn) {
-            setTimeout(aiMove, 600);
+            // تأخير بسيط ليبدو وكأن الكمبيوتر يفكر
+            setTimeout(aiMove, 100); 
         }
     }
 
@@ -254,12 +148,13 @@
         isComputerTurn = (gameModeSelect.value === 'ai' && currentPlayer === 'white');
     }
 
-    function checkWin(row, col) {
+    function checkWin(row, col, player) {
+        // نمرر اللاعب كبارامتر لتستطيع دالة Minimax استخدامها
         const directions = [
-            [[0, 1], [0, -1]],     // Horizontal
-            [[1, 0], [-1, 0]],     // Vertical
-            [[1, 1], [-1, -1]],    // Diagonal \
-            [[1, -1], [-1, 1]]     // Diagonal /
+            [[0, 1], [0, -1]],      // Horizontal
+            [[1, 0], [-1, 0]],      // Vertical
+            [[1, 1], [-1, -1]],     // Diagonal \
+            [[1, -1], [-1, 1]]      // Diagonal /
         ];
 
         for (const dir of directions) {
@@ -268,11 +163,9 @@
                 let x = row + dx;
                 let y = col + dy;
                 while (
-                    x >= 0 &&
-                    x < boardSize &&
-                    y >= 0 &&
-                    y < boardSize &&
-                    gameBoard[x][y] === currentPlayer
+                    x >= 0 && x < boardSize &&
+                    y >= 0 && y < boardSize &&
+                    gameBoard[x][y] === player
                     ) {
                     count++;
                     x += dx;
@@ -281,17 +174,48 @@
             }
             if (count >= 5) return true;
         }
-
         return false;
     }
 
-    function aiFindBestMove() {
-        // First, check if AI can win
+    // ==========================================
+    // ========== AI LOGIC SECTION ==============
+    // ==========================================
+
+    function aiMove() {
+        if (gameOver) return;
+        
+        let move;
+        const level = difficultySelect.value;
+
+        // التحقق أولاً: هل يمكنني الفوز فوراً؟ (مشترك لكل المستويات ما عدا السهل جداً)
+        if (level !== 'easy') {
+            move = findWinningMove('white'); 
+            if (move) { placeMove(move.r, move.c); return; }
+            
+            move = findWinningMove('black'); // صد الخصم
+            if (move) { placeMove(move.r, move.c); return; }
+        }
+
+        if (level === 'easy') {
+            move = aiEasyMove();
+        } else if (level === 'medium') {
+            move = aiGreedyMove(evaluateMedium); // المنطق القديم
+        } else if (level === 'hard') {
+            move = aiGreedyMove(evaluateHard);   // المنطق الحالي في الملف
+        } else if (level === 'impossible') {
+            move = aiMinimaxMove();              // منطق Minimax
+        }
+
+        if (move) placeMove(move.r, move.c);
+    }
+
+    // دالة مساعدة لإيجاد الحركات الفائزة المباشرة
+    function findWinningMove(player) {
         for (let r = 0; r < boardSize; r++) {
             for (let c = 0; c < boardSize; c++) {
                 if (!gameBoard[r][c]) {
-                    gameBoard[r][c] = 'white';
-                    if (checkWin(r, c)) {
+                    gameBoard[r][c] = player;
+                    if (checkWin(r, c, player)) {
                         gameBoard[r][c] = null;
                         return { r, c };
                     }
@@ -299,155 +223,330 @@
                 }
             }
         }
+        return null;
+    }
 
-        // Then block player from winning
+    // ----------------------------------------
+    // LEVEL 1: EASY (عشوائي بجوار القطع)
+    // ----------------------------------------
+    function aiEasyMove() {
+        let availableMoves = [];
+        // نجمع كل الأماكن الفارغة التي بجوارها أي قطعة (عشوائية لكن ليست غبية تماماً)
         for (let r = 0; r < boardSize; r++) {
             for (let c = 0; c < boardSize; c++) {
                 if (!gameBoard[r][c]) {
-                    gameBoard[r][c] = 'black';
-                    if (checkWin(r, c)) {
-                        gameBoard[r][c] = null;
-                        return { r, c };
-                    }
-                    gameBoard[r][c] = null;
+                   if (hasNeighbor(r, c)) {
+                       availableMoves.push({r, c});
+                   }
                 }
             }
         }
+        
+        if (availableMoves.length > 0) {
+            return availableMoves[Math.floor(Math.random() * availableMoves.length)];
+        }
+        // لو البورد فاضي أو مفيش جيران، العب في النص
+        return { r: 7, c: 7 };
+    }
 
-        // Evaluate potential moves based on proximity to existing stones
+    function hasNeighbor(r, c) {
+        for(let dx=-1; dx<=1; dx++){
+            for(let dy=-1; dy<=1; dy++){
+                if(dx===0 && dy===0) continue;
+                let x = r+dx, y = c+dy;
+                if(x>=0 && x<boardSize && y>=0 && y<boardSize && gameBoard[x][y]) return true;
+            }
+        }
+        return false;
+    }
+
+    // ----------------------------------------
+    // GREEDY SEARCH (Used for Medium & Hard)
+    // ----------------------------------------
+    function aiGreedyMove(evalFunction) {
         let bestScore = -Infinity;
         let bestMoves = [];
 
+        // تحسين: نفحص فقط الخلايا المجاورة للقطع الموجودة (Pruning)
+        // لتسريع الأداء بدلاً من فحص 225 خلية
+        let candidates = getCandidateMoves();
+
+        if (candidates.length === 0) return { r: 7, c: 7 };
+
+        for (let move of candidates) {
+            let score = evalFunction(move.r, move.c);
+            if (score > bestScore) {
+                bestScore = score;
+                bestMoves = [move];
+            } else if (score === bestScore) {
+                bestMoves.push(move);
+            }
+        }
+        return bestMoves[Math.floor(Math.random() * bestMoves.length)];
+    }
+
+    // دالة لجلب المربعات الفارغة المجاورة لأي قطعة موجودة (مهمة للأداء)
+    function getCandidateMoves() {
+        let moves = [];
+        let taken = new Set(); // لتجنب التكرار
+        
+        // لو البورد فاضي، رجع المنتصف
+        let isEmpty = true;
+
         for (let r = 0; r < boardSize; r++) {
             for (let c = 0; c < boardSize; c++) {
-                if (!gameBoard[r][c]) {
-                    let score = evaluatePosition(r, c);
-                    if (score > bestScore) {
-                        bestScore = score;
-                        bestMoves = [{ r, c }];
-                    } else if (score === bestScore) {
-                        bestMoves.push({ r, c });
+                if (gameBoard[r][c]) {
+                    isEmpty = false;
+                    // فحص الجيران 
+                    for (let dx = -1; dx <= 1; dx++) {
+                        for (let dy = -1; dy <= 1; dy++) {
+                            if (dx === 0 && dy === 0) continue;
+                            let nr = r + dx, nc = c + dy;
+                            if (nr >= 0 && nr < boardSize && nc >= 0 && nc < boardSize && !gameBoard[nr][nc]) {
+                                let key = `${nr},${nc}`;
+                                if (!taken.has(key)) {
+                                    moves.push({ r: nr, c: nc });
+                                    taken.add(key);
+                                }
+                            }
+                        }
                     }
                 }
             }
         }
-
-        return bestMoves[Math.floor(Math.random() * bestMoves.length)];
+        
+        if (isEmpty) return [{r: 7, c: 7}];
+        return moves;
     }
 
-    function evaluatePosition(r, c) {
+
+    // ----------------------------------------
+    // LEVEL 2: MEDIUM (المنطق الأول - Math.pow)
+    // ----------------------------------------
+    function evaluateMedium(r, c) {
         let score = 0;
-        const directions = [
-            [0, 1],   // أفقي
-            [1, 0],   // رأسي
-            [1, 1],   // قطري \
-            [1, -1]   // قطري /
-        ];
-    
-        // حدد من هو اللاعب الحالي ومن هو الخصم
-        // (افترضنا هنا أن دورك هو الأبيض، يمكنك تعديلها لتستقبل المتغيرات كـ arguments)
+        const directions = [[0, 1], [1, 0], [1, 1], [1, -1]];
+
+        for (const [dx, dy] of directions) {
+            let myCount = 0;
+            let oppCount = 0;
+            
+            // المنطق القديم: نافذة 9 خانات تبدأ من الخلف بـ 4 خطوات
+            let x = r - 4 * dx;
+            let y = c - 4 * dy;
+
+            for (let i = 0; i < 9; i++) {
+                if (x >= 0 && x < boardSize && y >= 0 && y < boardSize) {
+                    const cell = gameBoard[x][y];
+                    if (cell === 'white') myCount++;
+                    else if (cell === 'black') oppCount++;
+                }
+                x += dx;
+                y += dy;
+            }
+
+            // هنا بنضيف وزن إضافي لو القطعة دي هتكمل سلسلة
+            // لكن المنطق بسيط وفيه ثغرات (مش بيشوف الحواف المغلقة)
+            if (myCount > 0) score += Math.pow(2, myCount);
+            if (oppCount > 0) score += Math.pow(2, oppCount);
+        }
+        return score;
+    }
+
+    // ----------------------------------------
+    // LEVEL 3: HARD (المنطق الحالي في الملف - BlockedEnds)
+    // ----------------------------------------
+    function evaluateHard(r, c) {
+        let score = 0;
+        const directions = [[0, 1], [1, 0], [1, 1], [1, -1]];
         const myColor = 'white';
         const oppColor = 'black';
     
         for (const [dx, dy] of directions) {
-            // 1. احسب نقاط الهجوم (كم سيفيدني هذا المربع؟)
-            score += getLineScore(r, c, dx, dy, myColor, true); 
-    
-            // 2. احسب نقاط الدفاع (كم سيضر الخصم لو لعبت هنا؟ - أي منعته)
-            // نضرب في معامل (مثلاً 0.9) لأن الهجوم غالباً أهم قليلاً من الدفاع إلا في حالات الخطر القصوى
-            score += getLineScore(r, c, dx, dy, oppColor, false) * 0.9; 
+            // الهجوم
+            score += getLineScore(r, c, dx, dy, myColor); 
+            // الدفاع (نضرب في معامل عالي لأن الدفاع مهم جداً)
+            score += getLineScore(r, c, dx, dy, oppColor) * 0.9; 
         }
-    
         return score;
     }
     
-    // دالة مساعدة لحساب قوة الخط في اتجاه معين ولون معين
-    function getLineScore(r, c, dx, dy, color, isAttack) {
-        let count = 1; // نبدأ بـ 1 لأننا نفترض أننا وضعنا القطعة في (r, c)
+    function getLineScore(r, c, dx, dy, color) {
+        let count = 1; 
         let blockedEnds = 0;
     
-        // فحص الاتجاه الموجب (مثلاً لليمين)
+        // فحص الاتجاه الموجب
         let i = 1;
         while (true) {
             let x = r + i * dx;
             let y = c + i * dy;
-            
-            // هل خرجنا عن الحدود؟
-            if (x < 0 || x >= boardSize || y < 0 || y >= boardSize) {
-                blockedEnds++;
-                break;
-            }
-    
+            if (x < 0 || x >= boardSize || y < 0 || y >= boardSize) { blockedEnds++; break; }
             const cell = gameBoard[x][y];
-            if (cell === color) {
-                count++; // قطعة لنفس اللون، أكمل العد
-            } else if (cell === null || cell === '') {
-                break; // خلية فارغة، يعني الطرف مفتوح، توقف هنا
-            } else {
-                blockedEnds++; // قطعة للخصم، يعني الطرف مغلق
-                break;
-            }
+            if (cell === color) count++;
+            else if (cell === null) break;
+            else { blockedEnds++; break; }
             i++;
         }
     
-        // فحص الاتجاه السالب (مثلاً لليسار)
+        // فحص الاتجاه السالب
         i = 1;
         while (true) {
             let x = r - i * dx;
             let y = c - i * dy;
-    
-            if (x < 0 || x >= boardSize || y < 0 || y >= boardSize) {
-                blockedEnds++;
-                break;
-            }
-    
+            if (x < 0 || x >= boardSize || y < 0 || y >= boardSize) { blockedEnds++; break; }
             const cell = gameBoard[x][y];
-            if (cell === color) {
-                count++;
-            } else if (cell === null || cell === '') {
-                break;
-            } else {
-                blockedEnds++;
-                break;
-            }
+            if (cell === color) count++;
+            else if (cell === null) break;
+            else { blockedEnds++; break; }
             i++;
         }
     
-        // --- نظام توزيع النقاط (Scoring System) ---
-        // هذا الجزء هو "المخ" الذي يحدد أهمية الحركة بناء على العدد والإغلاق
-    
-        if (count >= 5) return 1000000; // الفوز (أو منع الخصم من الفوز)
-    
+        // نظام النقاط الذكي
+        if (count >= 5) return 1000000;
         if (count === 4) {
-            if (blockedEnds === 0) return 50000; // 4 مفتوحة (فوز مؤكد في الدور القادم)
-            if (blockedEnds === 1) return 10000; // 4 مغلقة من طرف (تهديد قوي)
-            return 0; // 4 مغلقة من الطرفين (ميتة)
-        }
-    
-        if (count === 3) {
-            if (blockedEnds === 0) return 5000;  // 3 مفتوحة (فرصة ممتازة)
-            if (blockedEnds === 1) return 500;   // 3 مغلقة من طرف (جيدة ولكن ليست خطيرة جداً)
-            return 0; // 3 مغلقة تماماً
-        }
-    
-        if (count === 2) {
-            if (blockedEnds === 0) return 100;   // 2 مفتوحة
-            if (blockedEnds === 1) return 20;    // 2 مغلقة
+            if (blockedEnds === 0) return 50000;
+            if (blockedEnds === 1) return 10000; 
             return 0;
         }
-    
-        if (count === 1) {
-           return 5; // مجرد وضع قطعة في مكان شبه فارغ
+        if (count === 3) {
+            if (blockedEnds === 0) return 5000;
+            if (blockedEnds === 1) return 500;
+            return 0;
         }
-    
+        if (count === 2) {
+            if (blockedEnds === 0) return 100;
+            if (blockedEnds === 1) return 20;
+            return 0;
+        }
+        if (count === 1) return 5;
         return 0;
     }
 
-    function aiMove() {
-        if (gameOver) return;
-        const move = aiFindBestMove();
-        if (move) placeMove(move.r, move.c);
+
+    // ----------------------------------------
+    // LEVEL 4: IMPOSSIBLE (Minimax)
+    // ----------------------------------------
+    
+    function aiMinimaxMove() {
+        // عمق 2 كافٍ جداً للتفوق على البشر في المتصفح دون تعليق الصفحة
+        // يستخدم evaluateHard كدالة تقييم نهائية
+        const depth = 2; 
+        
+        let candidates = getCandidateMoves();
+        if (candidates.length === 0) return {r: 7, c: 7};
+        
+        // ترتيب الحركات مبدئياً بناءً على تقييم سريع لتسريع القص (Alpha-Beta Pruning)
+        candidates.sort((a, b) => evaluateHard(b.r, b.c) - evaluateHard(a.r, a.c));
+        
+        // نختار أفضل 12 حركة فقط لتسريع الحسابات (Optimization)
+        candidates = candidates.slice(0, 12);
+
+        let bestScore = -Infinity;
+        let bestMove = candidates[0];
+
+        for (let move of candidates) {
+            gameBoard[move.r][move.c] = 'white'; // AI plays
+            
+            // استدعاء Minimax للخصم
+            let score = minimax(depth - 1, -Infinity, Infinity, false);
+            
+            gameBoard[move.r][move.c] = null; // Backtrack
+
+            if (score > bestScore) {
+                bestScore = score;
+                bestMove = move;
+            }
+        }
+        return bestMove;
     }
+
+    function minimax(depth, alpha, beta, isMaximizing) {
+        // فحص حالة الفوز/الخسارة قبل التقييم
+        // (ملاحظة: هذا فحص سريع، الخوارزمية الكاملة تحتاج فحص دقيق لكل خطوة)
+        
+        if (depth === 0) {
+            // تقييم اللوحة من وجهة نظر AI (White)
+            // هنا، بدلاً من تقييم اللوحة كاملة (بطيء)، نقيم آخر حركة أو نستخدم heuristic
+            // للتبسيط والسرعة: سنستخدم evaluateHard لأقوى نقطة في البورد حالياً
+            return evaluateBoardState();
+        }
+
+        let candidates = getCandidateMoves().slice(0, 10); // خذ أفضل 10 مرشحين فقط
+
+        if (isMaximizing) { // دور AI (White)
+            let maxEval = -Infinity;
+            for (let move of candidates) {
+                gameBoard[move.r][move.c] = 'white';
+                if (checkWin(move.r, move.c, 'white')) {
+                    gameBoard[move.r][move.c] = null;
+                    return 10000000; // فوز مؤكد
+                }
+                let eval = minimax(depth - 1, alpha, beta, false);
+                gameBoard[move.r][move.c] = null;
+                maxEval = Math.max(maxEval, eval);
+                alpha = Math.max(alpha, eval);
+                if (beta <= alpha) break;
+            }
+            return maxEval;
+        } else { // دور اللاعب (Black)
+            let minEval = Infinity;
+            for (let move of candidates) {
+                gameBoard[move.r][move.c] = 'black';
+                if (checkWin(move.r, move.c, 'black')) {
+                    gameBoard[move.r][move.c] = null;
+                    return -10000000; // خسارة مؤكدة
+                }
+                let eval = minimax(depth - 1, alpha, beta, true);
+                gameBoard[move.r][move.c] = null;
+                minEval = Math.min(minEval, eval);
+                beta = Math.min(beta, eval);
+                if (beta <= alpha) break;
+            }
+            return minEval;
+        }
+    }
+
+    // دالة تقييم حالة البورد بالكامل (مكلفة، لذا نستخدمها بحذر)
+    function evaluateBoardState() {
+        let totalScore = 0;
+        // نمر على البورد ونجمع نقاط AI ونطرح نقاط الخصم
+        // لنسرع العملية، نقيم فقط الخلايا المشغولة وحولها
+        // هنا سنستخدم اختصار: تقييم الوضع الحالي بناء على دالة Hard
+        // نقوم بعمل مسح سريع للبحث عن التهديدات
+        
+        for(let r=0; r<boardSize; r++){
+            for(let c=0; c<boardSize; c++){
+                if(!gameBoard[r][c]) {
+                     // نقيم الفرص المتاحة في الأماكن الفارغة
+                     // نقاط إيجابية لفرص الأبيض، سلبية لفرص الأسود
+                     let whiteScore = getLineScoreSimple(r, c, 'white');
+                     let blackScore = getLineScoreSimple(r, c, 'black');
+                     totalScore += (whiteScore - blackScore * 1.2); // نخاف من الأسود أكثر
+                }
+            }
+        }
+        return totalScore;
+    }
+
+    // نسخة مخففة من getLineScore للسرعة داخل Minimax
+    function getLineScoreSimple(r, c, color) {
+        // نستخدم نفس منطق Hard لكن بدون إنشاء كائنات كثيرة
+        return evaluateHardForMinimax(r, c, color);
+    }
+
+    function evaluateHardForMinimax(r, c, color) {
+        let score = 0;
+        const directions = [[0, 1], [1, 0], [1, 1], [1, -1]];
+        for (const [dx, dy] of directions) {
+             score += getLineScore(r, c, dx, dy, color);
+        }
+        return score;
+    }
+
+
+    // ==========================================
+    // ========== END AI LOGIC ==================
+    // ==========================================
 
     function showWinMessage() {
         gameOver = true;
@@ -470,11 +569,7 @@
         createBoard();
     }
 
-    gameModeSelect.addEventListener('change', () => {
-        resetGame();
-    });
-
-    // Resize observer to keep board square
+    // Resize observer
     window.addEventListener('resize', () => {
         const board = document.getElementById('board');
         const parent = board.parentElement;
@@ -484,8 +579,7 @@
     });
 
     createBoard();
-    window.dispatchEvent(new Event('resize')); // Trigger initial resize
+    window.dispatchEvent(new Event('resize')); 
 </script>
 </body>
-
 </html>
