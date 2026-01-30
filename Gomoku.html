@@ -338,36 +338,109 @@
     function evaluatePosition(r, c) {
         let score = 0;
         const directions = [
-            [0, 1],
-            [1, 0],
-            [1, 1],
-            [1, -1]
+            [0, 1],   // أفقي
+            [1, 0],   // رأسي
+            [1, 1],   // قطري \
+            [1, -1]   // قطري /
         ];
-
+    
+        // حدد من هو اللاعب الحالي ومن هو الخصم
+        // (افترضنا هنا أن دورك هو الأبيض، يمكنك تعديلها لتستقبل المتغيرات كـ arguments)
+        const myColor = 'white';
+        const oppColor = 'black';
+    
         for (const [dx, dy] of directions) {
-            let myCount = 0;
-            let oppCount = 0;
-            let emptyCount = 0;
-
-            let x = r - 4 * dx;
-            let y = c - 4 * dy;
-
-            for (let i = 0; i < 9; i++) {
-                if (x >= 0 && x < boardSize && y >= 0 && y < boardSize) {
-                    const cell = gameBoard[x][y];
-                    if (cell === 'white') myCount++;
-                    else if (cell === 'black') oppCount++;
-                    else emptyCount++;
-                }
-                x += dx;
-                y += dy;
-            }
-
-            if (myCount > 0) score += Math.pow(2, myCount);
-            if (oppCount > 0) score += Math.pow(2, oppCount);
+            // 1. احسب نقاط الهجوم (كم سيفيدني هذا المربع؟)
+            score += getLineScore(r, c, dx, dy, myColor, true); 
+    
+            // 2. احسب نقاط الدفاع (كم سيضر الخصم لو لعبت هنا؟ - أي منعته)
+            // نضرب في معامل (مثلاً 0.9) لأن الهجوم غالباً أهم قليلاً من الدفاع إلا في حالات الخطر القصوى
+            score += getLineScore(r, c, dx, dy, oppColor, false) * 0.9; 
         }
-
+    
         return score;
+    }
+    
+    // دالة مساعدة لحساب قوة الخط في اتجاه معين ولون معين
+    function getLineScore(r, c, dx, dy, color, isAttack) {
+        let count = 1; // نبدأ بـ 1 لأننا نفترض أننا وضعنا القطعة في (r, c)
+        let blockedEnds = 0;
+    
+        // فحص الاتجاه الموجب (مثلاً لليمين)
+        let i = 1;
+        while (true) {
+            let x = r + i * dx;
+            let y = c + i * dy;
+            
+            // هل خرجنا عن الحدود؟
+            if (x < 0 || x >= boardSize || y < 0 || y >= boardSize) {
+                blockedEnds++;
+                break;
+            }
+    
+            const cell = gameBoard[x][y];
+            if (cell === color) {
+                count++; // قطعة لنفس اللون، أكمل العد
+            } else if (cell === null || cell === '') {
+                break; // خلية فارغة، يعني الطرف مفتوح، توقف هنا
+            } else {
+                blockedEnds++; // قطعة للخصم، يعني الطرف مغلق
+                break;
+            }
+            i++;
+        }
+    
+        // فحص الاتجاه السالب (مثلاً لليسار)
+        i = 1;
+        while (true) {
+            let x = r - i * dx;
+            let y = c - i * dy;
+    
+            if (x < 0 || x >= boardSize || y < 0 || y >= boardSize) {
+                blockedEnds++;
+                break;
+            }
+    
+            const cell = gameBoard[x][y];
+            if (cell === color) {
+                count++;
+            } else if (cell === null || cell === '') {
+                break;
+            } else {
+                blockedEnds++;
+                break;
+            }
+            i++;
+        }
+    
+        // --- نظام توزيع النقاط (Scoring System) ---
+        // هذا الجزء هو "المخ" الذي يحدد أهمية الحركة بناء على العدد والإغلاق
+    
+        if (count >= 5) return 1000000; // الفوز (أو منع الخصم من الفوز)
+    
+        if (count === 4) {
+            if (blockedEnds === 0) return 50000; // 4 مفتوحة (فوز مؤكد في الدور القادم)
+            if (blockedEnds === 1) return 10000; // 4 مغلقة من طرف (تهديد قوي)
+            return 0; // 4 مغلقة من الطرفين (ميتة)
+        }
+    
+        if (count === 3) {
+            if (blockedEnds === 0) return 5000;  // 3 مفتوحة (فرصة ممتازة)
+            if (blockedEnds === 1) return 500;   // 3 مغلقة من طرف (جيدة ولكن ليست خطيرة جداً)
+            return 0; // 3 مغلقة تماماً
+        }
+    
+        if (count === 2) {
+            if (blockedEnds === 0) return 100;   // 2 مفتوحة
+            if (blockedEnds === 1) return 20;    // 2 مغلقة
+            return 0;
+        }
+    
+        if (count === 1) {
+           return 5; // مجرد وضع قطعة في مكان شبه فارغ
+        }
+    
+        return 0;
     }
 
     function aiMove() {
@@ -414,4 +487,5 @@
     window.dispatchEvent(new Event('resize')); // Trigger initial resize
 </script>
 </body>
+
 </html>
